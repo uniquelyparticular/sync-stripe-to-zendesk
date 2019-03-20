@@ -1,8 +1,10 @@
 # @particular./sync-stripe-to-zendesk
 
-> Add a Zendesk Sunshine Evenet when payment refunded in Stripe
+> Add a Zendesk Sunshine Event when payment refunded in Stripe
 
 Asynchronous microservice that is triggered by [Stripe](https://stripe.com) webhooks to create a Sunshine Event inside of [Zendesk](https://zendesk.com).
+
+⚠️ Zendesk [Sunshine Event API](https://develop.zendesk.com/hc/en-us/community/posts/360004233828-About-the-Events-API) is only available via Early Access BETA registration.
 
 Built with [Micro](https://github.com/zeit/micro)! 🤩
 
@@ -20,7 +22,9 @@ ZENDESK_INTEGRATION_SECRET=
 
 Find your `STRIPE_SECRET_KEY` within Stripe's [API Settings](https://dashboard.stripe.com/account/apikeys).
 
-TODO: add instructions on ZENDESK keys above
+While logged in to your Zendesk instance create a new User to run the Webhooks under by going to `Settings` > `People` > `Add User` > `Role: Staff`; this email address will be used as your `ZENDESK_INTEGRATION_EMAIL` above.
+
+Find your `ZENDESK_INTEGRATION_SECRET` within your Zendesk instance by going to `Settings` > `API` > enable `Token Access` > add `Active API Tokens [+]` > `API Token`.
 
 ## 📦 Package
 
