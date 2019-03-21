@@ -51,11 +51,11 @@ module.exports = cors(async (req, res) => {
 
     const {
       type,
+      created,
       data: {
         object: {
           id: reference,
           customer: stripe_id,
-          created,
           status,
           refunded,
           amount: total_paid,
