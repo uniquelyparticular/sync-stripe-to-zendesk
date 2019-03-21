@@ -1,5 +1,7 @@
 # @particular./sync-stripe-to-zendesk
 
+[![npm version](https://badge.fury.io/js/%40particular.%2Fsync-stripe-to-zendesk.svg)](https://badge.fury.io/js/%40particular.%2Fsync-stripe-to-zendesk)
+
 > Add a Zendesk Sunshine Event when payment refunded in Stripe
 
 Asynchronous microservice that is triggered by [Stripe](https://stripe.com) webhooks to create a Sunshine Event inside of [Zendesk](https://zendesk.com).
