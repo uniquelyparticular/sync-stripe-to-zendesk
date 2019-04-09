@@ -18,11 +18,15 @@ Create a `.env` at the project root with the following credentials:
 
 ```dosini
 STRIPE_SECRET_KEY=
+STRIPE_WEBHOOK_SECRET=
+ZENDESK_SUBDOMAIN=
 ZENDESK_INTEGRATION_EMAIL=
 ZENDESK_INTEGRATION_SECRET=
 ```
 
 Find your `STRIPE_SECRET_KEY` within Stripe's [API Settings](https://dashboard.stripe.com/account/apikeys).
+
+`ZENDESK_SUBDOMAIN` is the first part of the URL for your Zendesk account (ie. https://{ZENDESK_SUBDOMAIN}.zendesk.com/).
 
 While logged in to your Zendesk instance create a new User to run the Webhooks under by going to `Settings` > `People` > `Add User` > `Role: Staff`; this email address will be used as your `ZENDESK_INTEGRATION_EMAIL` above.
 
