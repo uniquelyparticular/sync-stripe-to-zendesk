@@ -64,7 +64,12 @@ module.exports = cors(async (req, res) => {
           source: {
             card: { last4: card_last4, brand: card_brand }
           },
-          metadata: { email, order_id, customer_id, customer_name }
+          metadata: {
+            email: billing_email,
+            order_id,
+            customer_id,
+            customer_name
+          }
         },
         previous_attributes: { amount_refunded: previously_refunded }
       }
@@ -75,80 +80,87 @@ module.exports = cors(async (req, res) => {
     )
 
     if (order_id) {
-      if (type === 'charge.refunded' && status === 'succeeded') {
-        const payload = {
-          profile: {
-            source: 'support',
-            identifiers: {
-              stripe_id: stripe_id,
-              moltin_id: customer_id,
-              email: email
-            }
-          },
-          event: {
-            source: 'stripe',
-            type: 'stripe-payment-refund',
-            description:
-              refunded === true ? 'Order Refunded' : 'Partial Refund',
-            created_at: moment.unix(created),
-            properties: {
-              'Transcation Reference': reference,
-              'Customer Name': customer_name,
-              'Order ID': order_id,
-              'Order Total': currency(total_paid / 100, {
-                formatWithSymbol: true
-              }).format(),
-              'Amount Refunded': currency(
-                (total_refunded - previously_refunded) / 100,
-                { formatWithSymbol: true }
-              ).format(),
-              [`Total Refunds (${number_refunds}) - ${Math.round(
-                (total_refunded / total_paid) * 100
-              )}%`]: currency(total_refunded / 100, {
-                formatWithSymbol: true
-              }).format()
-            }
-          }
-        }
-
-        fetch(
-          `https://${
-            process.env.ZENDESK_SUBDOMAIN
-          }.zendesk.com/api/sunshine/track`,
-          {
-            headers: {
-              Authorization: `Basic ${Buffer.from(
-                `${process.env.ZENDESK_INTEGRATION_EMAIL}/token:${
-                  process.env.ZENDESK_INTEGRATION_SECRET
-                }`
-              ).toString('base64')}`,
-              Accept: 'application/json',
-              'Content-Type': 'application/json'
+      if (billing_email) {
+        if (type === 'charge.refunded' && status === 'succeeded') {
+          const payload = {
+            profile: {
+              source: 'support',
+              identifiers: {
+                email: billing_email,
+                stripe_id: stripe_id,
+                moltin_id: customer_id
+              }
             },
-            method: 'POST',
-            body: JSON.stringify(payload)
+            event: {
+              source: 'stripe',
+              type: 'stripe-payment-refund',
+              description:
+                refunded === true ? 'Order Refunded' : 'Partial Refund',
+              created_at: moment.unix(created),
+              properties: {
+                'Transcation Reference': reference,
+                'Customer Name': customer_name,
+                'Order ID': order_id,
+                'Order Total': currency(total_paid / 100, {
+                  formatWithSymbol: true
+                }).format(),
+                'Amount Refunded': currency(
+                  (total_refunded - previously_refunded) / 100,
+                  { formatWithSymbol: true }
+                ).format(),
+                [`Total Refunds (${number_refunds}) - ${Math.round(
+                  (total_refunded / total_paid) * 100
+                )}%`]: currency(total_refunded / 100, {
+                  formatWithSymbol: true
+                }).format()
+              }
+            }
           }
-        )
-          .then(response => {
-            if (response.ok && response.status < 299) {
+
+          fetch(
+            `https://${
+              process.env.ZENDESK_SUBDOMAIN
+            }.zendesk.com/api/sunshine/track`,
+            {
+              headers: {
+                Authorization: `Basic ${Buffer.from(
+                  `${process.env.ZENDESK_INTEGRATION_EMAIL}/token:${
+                    process.env.ZENDESK_INTEGRATION_SECRET
+                  }`
+                ).toString('base64')}`,
+                Accept: 'application/json',
+                'Content-Type': 'application/json'
+              },
+              method: 'POST',
+              body: JSON.stringify(payload)
+            }
+          )
+            .then(response => {
+              if (response.ok && response.status < 299) {
+                return send(
+                  res,
+                  200,
+                  JSON.stringify({ received: true, order_id })
+                )
+              } else {
+                return send(res, 500, 'Error')
+              }
+            })
+            .catch(error => {
+              const jsonError = _toJSON(error)
               return send(
                 res,
-                200,
-                JSON.stringify({ received: true, order_id })
+                jsonError.type === 'StripeSignatureVerificationError'
+                  ? 401
+                  : 500,
+                jsonError
               )
-            } else {
-              return send(res, 500, 'Error')
-            }
-          })
-          .catch(error => {
-            const jsonError = _toJSON(error)
-            return send(
-              res,
-              jsonError.type === 'StripeSignatureVerificationError' ? 401 : 500,
-              jsonError
-            )
-          })
+            })
+        } else {
+          return send(res, 200, JSON.stringify({ received: true, order_id }))
+        }
       } else {
+        console.error('missing billing_email')
         return send(res, 200, JSON.stringify({ received: true, order_id }))
       }
     } else {
