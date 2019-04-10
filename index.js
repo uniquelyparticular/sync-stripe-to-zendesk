@@ -74,74 +74,90 @@ module.exports = cors(async (req, res) => {
       process.env.STRIPE_WEBHOOK_SECRET
     )
 
-    if (order_id && type === 'charge.refunded' && status === 'succeeded') {
-      const payload = {
-        profile: {
-          source: 'support',
-          identifiers: {
-            stripe_id: stripe_id,
-            moltin_id: customer_id,
-            email: email
-          }
-        },
-        event: {
-          source: 'stripe',
-          type: 'stripe-payment-refund',
-          description: refunded === true ? 'Order Refunded' : 'Partial Refund',
-          created_at: moment.unix(created),
-          properties: {
-            'Transcation Reference': reference,
-            'Customer Name': customer_name,
-            'Order ID': order_id,
-            'Order Total': currency(total_paid / 100, {
-              formatWithSymbol: true
-            }).format(),
-            'Amount Refunded': currency(
-              (total_refunded - previously_refunded) / 100,
-              { formatWithSymbol: true }
-            ).format(),
-            [`Total Refunds (${number_refunds}) - ${Math.round(
-              (total_refunded / total_paid) * 100
-            )}%`]: currency(total_refunded / 100, {
-              formatWithSymbol: true
-            }).format()
-          }
-        }
-      }
-
-      fetch(
-        `https://${
-          process.env.ZENDESK_SUBDOMAIN
-        }.zendesk.com/api/sunshine/track`,
-        {
-          headers: {
-            Authorization: `Basic ${Buffer.from(
-              `${process.env.ZENDESK_INTEGRATION_EMAIL}/token:${
-                process.env.ZENDESK_INTEGRATION_SECRET
-              }`
-            ).toString('base64')}`,
-            Accept: 'application/json',
-            'Content-Type': 'application/json'
+    if (order_id) {
+      if (type === 'charge.refunded' && status === 'succeeded') {
+        const payload = {
+          profile: {
+            source: 'support',
+            identifiers: {
+              stripe_id: stripe_id,
+              moltin_id: customer_id,
+              email: email
+            }
           },
-          method: 'POST',
-          body: JSON.stringify(payload)
-        }
-      )
-        .then(response => {
-          if (response.ok && response.status < 299) {
-            return send(res, 200, JSON.stringify({ received: true }))
-          } else {
-            return send(res, 500, 'Error')
+          event: {
+            source: 'stripe',
+            type: 'stripe-payment-refund',
+            description:
+              refunded === true ? 'Order Refunded' : 'Partial Refund',
+            created_at: moment.unix(created),
+            properties: {
+              'Transcation Reference': reference,
+              'Customer Name': customer_name,
+              'Order ID': order_id,
+              'Order Total': currency(total_paid / 100, {
+                formatWithSymbol: true
+              }).format(),
+              'Amount Refunded': currency(
+                (total_refunded - previously_refunded) / 100,
+                { formatWithSymbol: true }
+              ).format(),
+              [`Total Refunds (${number_refunds}) - ${Math.round(
+                (total_refunded / total_paid) * 100
+              )}%`]: currency(total_refunded / 100, {
+                formatWithSymbol: true
+              }).format()
+            }
           }
-        })
-        .catch(error => {
-          const jsonError = _toJSON(error)
-          return send(
-            res,
-            jsonError.type === 'StripeSignatureVerificationError' ? 401 : 500,
-            jsonError
-          )
-        })
+        }
+
+        fetch(
+          `https://${
+            process.env.ZENDESK_SUBDOMAIN
+          }.zendesk.com/api/sunshine/track`,
+          {
+            headers: {
+              Authorization: `Basic ${Buffer.from(
+                `${process.env.ZENDESK_INTEGRATION_EMAIL}/token:${
+                  process.env.ZENDESK_INTEGRATION_SECRET
+                }`
+              ).toString('base64')}`,
+              Accept: 'application/json',
+              'Content-Type': 'application/json'
+            },
+            method: 'POST',
+            body: JSON.stringify(payload)
+          }
+        )
+          .then(response => {
+            if (response.ok && response.status < 299) {
+              return send(
+                res,
+                200,
+                JSON.stringify({ received: true, order_id })
+              )
+            } else {
+              return send(res, 500, 'Error')
+            }
+          })
+          .catch(error => {
+            const jsonError = _toJSON(error)
+            return send(
+              res,
+              jsonError.type === 'StripeSignatureVerificationError' ? 401 : 500,
+              jsonError
+            )
+          })
+      } else {
+        return send(res, 200, JSON.stringify({ received: true, order_id }))
+      }
+    } else {
+      console.error('missing order_id')
+      return send(
+        res,
+        200,
+        JSON.stringify({ received: true, order_id: 'null' })
+      )
     }
   } catch (error) {
     const jsonError = _toJSON(error)
