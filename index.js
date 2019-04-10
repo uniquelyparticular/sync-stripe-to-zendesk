@@ -1,6 +1,6 @@
 const { buffer, send } = require('micro')
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY)
-const moment = require('moment')
+const moment = require('moment-timezone')
 const currency = require('currency.js')
 const fetch = require('node-fetch')
 
