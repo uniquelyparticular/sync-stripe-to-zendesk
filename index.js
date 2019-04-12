@@ -42,7 +42,7 @@ process.on('unhandledRejection', (reason, p) => {
 
 module.exports = cors(async (req, res) => {
   if (req.method === 'OPTIONS') {
-    return send(res, 200, 'ok!')
+    return send(res, 204)
   }
 
   try {
