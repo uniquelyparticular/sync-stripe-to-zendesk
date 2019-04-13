@@ -9,9 +9,10 @@
     "STRIPE_SECRET_KEY": "@demo-stripe-secret-key",
     "STRIPE_WEBHOOK_SECRET": "@demo-stripe-zendesk-webhook-secret"
   },
+  "routes": [{ "src": "/(.*)", "dest": "/src" }],
   "builds": [
     {
-      "src": "*.js",
+      "src": "src/*.js",
       "use": "@now/node"
     }
   ]
