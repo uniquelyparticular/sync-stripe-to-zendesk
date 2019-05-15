@@ -40,7 +40,7 @@
     "micro-cors": "^0.1.1",
     "moment-timezone": "^0.5.23",
     "node-fetch": "^2.3.0",
-    "stripe": "^6.28.0"
+    "stripe": "^7.0.0"
   },
   "devDependencies": {
     "husky": "2.3.0",
