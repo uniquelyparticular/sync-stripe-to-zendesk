@@ -1,6 +1,7 @@
 {
+  "version": 2,
   "name": "demo-sync-stripe-to-zendesk",
-  "alias": "particular-demo-sync-stripe-to-zendesk.now.sh",
+  "alias": "particular-sync-stripe-to-zendesk.now.sh",
   "env": {
     "NODE_ENV": "production",
     "ZENDESK_SUBDOMAIN": "@demo-zendesk-subdomain",
