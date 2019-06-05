@@ -35,7 +35,7 @@
     }
   },
   "dependencies": {
-    "currency.js": "1.2.1",
+    "currency.js": "1.2.2",
     "micro": "9.3.4",
     "micro-cors": "0.1.1",
     "moment-timezone": "0.5.25",
